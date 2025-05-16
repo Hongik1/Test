@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // 소스코드 체크아웃
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Java 파일들을 컴파일하여 classes 디렉토리에 저장
+                bat 'javac -encoding UTF-8 -d classes Practice\\src\\**\\*.java'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    def classpath = 'classes^;lib/^;path\\to\\eclipse\\plugins\\junit-platform-console-standalone-1.7.1.jar'
+                    bat "java -cp ${classpath} org.junit.platform.console.ConsoleLauncher --scan-classpath > test_results.txt"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'test_results.txt'
+        }
+
+        failure {
+            echo 'Build or test failed'
+        }
+
+        success {
+            echo 'Build and test succeeded'
+        }
+    }
+}
