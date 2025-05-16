@@ -4,23 +4,24 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // 소스코드 체크아웃
+                // Git 소스코드 체크아웃
                 checkout scm
             }
         }
 
         stage('Build') {
             steps {
-                // Java 파일들을 컴파일하여 classes 디렉토리에 저장
-                bat 'javac -encoding UTF-8 -d classes Practice\\src\\**\\*.java'
+                // 자바 파일 컴파일
+                sh 'mkdir -p classes && javac -encoding UTF-8 -d classes Practice/src/**/*.java'
             }
         }
 
         stage('Test') {
             steps {
                 script {
-                    def classpath = 'classes^;lib/^;path\\to\\eclipse\\plugins\\junit-platform-console-standalone-1.7.1.jar'
-                    bat "java -cp ${classpath} org.junit.platform.console.ConsoleLauncher --scan-classpath > test_results.txt"
+                    // JUnit 실행에 필요한 classpath 구성
+                    def classpath = "classes:lib/:path/to/eclipse/plugins/junit-platform-console-standalone-1.7.1.jar"
+                    sh "java -cp ${classpath} org.junit.platform.console.ConsoleLauncher --scan-classpath > test_results.txt"
                 }
             }
         }
@@ -32,11 +33,11 @@ pipeline {
         }
 
         failure {
-            echo 'Build or test failed'
+            echo '💥 Build or test failed!'
         }
 
         success {
-            echo 'Build and test succeeded'
+            echo '✅ Build and test succeeded!'
         }
     }
 }
